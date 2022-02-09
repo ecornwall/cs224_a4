@@ -59,7 +59,7 @@ class NMT(nn.Module):
         ### YOUR CODE HERE (~8 Lines)
         ### TODO - Initialize the following variables:
         ###     self.encoder (Bidirectional LSTM with bias)
-        self.encoder = nn.LSTM(embed_size, hidden_size, dropout=dropout_rate, bidirectional=True)
+        self.encoder = nn.LSTM(embed_size, hidden_size, bidirectional=True)
         ###     self.decoder (LSTM Cell with bias)
         self.decoder = nn.LSTMCell(embed_size + hidden_size, hidden_size)
         ###     self.h_projection (Linear Layer with no bias), called W_{h} in the PDF.
@@ -249,7 +249,8 @@ class NMT(nn.Module):
         ###             - Update o_prev to the new o_t.
         for Y_t in torch.split(Y, 1):
             Y_t = torch.squeeze(Y_t, 0)
-            Ybar_t = torch.cat((Y_t, o_prev), dim=1)
+            last_dim = len(Y_t.shape) - 1
+            Ybar_t = torch.cat((Y_t, o_prev), dim=last_dim)
             (hidden_state, cell_state), o_t, e_t = self.step(Ybar_t, dec_state, enc_hiddens,
                                                              enc_hiddens_proj, enc_masks)
             combined_outputs.append(o_t)
@@ -357,6 +358,7 @@ class NMT(nn.Module):
         alpha_t = torch.unsqueeze(alpha_t, dim=1)
         a_t = torch.bmm(alpha_t, enc_hiddens)
         a_t = torch.squeeze(a_t, dim=1)
+
         #$$     Hints:
         ###           - alpha_t is shape (b, src_len)
         ###           - enc_hiddens is shape (b, src_len, 2h)
