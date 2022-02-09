@@ -251,8 +251,9 @@ class NMT(nn.Module):
             Y_t = torch.squeeze(Y_t, 0)
             last_dim = len(Y_t.shape) - 1
             Ybar_t = torch.cat((Y_t, o_prev), dim=last_dim)
-            (hidden_state, cell_state), o_t, e_t = self.step(Ybar_t, dec_state, enc_hiddens,
+            dec_state, o_t, e_t = self.step(Ybar_t, dec_state, enc_hiddens,
                                                              enc_hiddens_proj, enc_masks)
+            hidden_state, cell_state = dec_state
             combined_outputs.append(o_t)
             o_prev = o_t
         ###     4. Use torch.stack to convert combined_outputs from a list length tgt_len of
