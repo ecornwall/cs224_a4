@@ -115,7 +115,7 @@ elif args.function == 'finetune':
                               num_workers=0)
         trainer = trainer.Trainer(model, name_dataset, None, tconf)
         trainer.train()
-        model.load_state_dict(torch.load(args.writing_params_path))
+        torch.save(model.state_dict(), args.writing_params_path)
 
     #     Hyperparameters for finetuning WITH a pretrained model:
     #         max_epochs=10
