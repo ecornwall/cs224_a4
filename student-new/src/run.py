@@ -125,7 +125,6 @@ elif args.function == 'finetune':
     #         warmup_tokens=512*20
     #         final_tokens=200*len(pretrain_dataset)*block_size
     #         num_workers=4
-    raise NotImplementedError
 elif args.function == 'evaluate':
     assert args.outputs_path is not None
     assert args.reading_params_path is not None
