@@ -168,8 +168,81 @@ class CharCorruptionDataset(Dataset):
 
     def __getitem__(self, idx):
         # TODO [part e]: see spec above
-        raise NotImplementedError
+        """
+        Masking Specification
 
+        The __getitem__ function takes an index and returns a data point (x, y) where
+        x and y are Long tensors of length self.block_size. x encodes the input
+        sequence, and y encodes the output sequence.
+
+        0. Use the idx argument of __getitem__ to retrieve the element of self.data
+        at the given index. We'll call the resulting data entry a document.
+        """
+        document = self.data[idx]
+        """
+        1. Randomly truncate the document to a length no less than 4 characters,
+        and no more than int(self.block_size*7/8) characters.
+        
+        - IMPORTANT: You are free to decide how to perform this random truncation, but
+        make sure that the length is picked _randomly_ (every possible length from 4
+        to int(self.block_size*7/8) has a chance of being picked) for full credit.
+        """
+        upper_bound_excl = int(self.block_size*7/8) # second parameters of randrange is exclusive
+        truncated_length = random.randrange(4, upper_bound_excl + 1)
+        document = document[:truncated_length] # take first truncated_length chars
+        """"
+        2. Now, break the (truncated) document into three substrings:
+            
+            [prefix] [masked_content] [suffix]
+        
+          In other words, choose three strings prefix, masked_content and suffix
+            such that prefix + masked_content + suffix = [the original document].
+          The length of [masked_content] should be random, and 1/4 the length of the
+            truncated document on average.
+        
+        - IMPORTANT: You are free to decide how to perform this operation, but
+        make sure that the length is picked _randomly_ (has a chance of being more or
+        less than 1/4 the length of the truncated document) for full credit.
+        """
+        truncated_length = len(document)
+        masked_content_length = int(random.uniform(0.15 * truncated_length, 0.35 * truncated_length))
+        prefix_length = (truncated_length - masked_content_length) // 2
+        prefix = document[:prefix_length]
+        masked_content = document[prefix_length: prefix_length + masked_content_length]
+        suffix_size = truncated_length - prefix_length - masked_content_length
+        suffix = document[prefix_length + masked_content_length:prefix_length + masked_content_length + suffix_size]
+        """
+        3. Rearrange these substrings into the following form:
+        
+            [prefix] MASK_CHAR [suffix] MASK_CHAR [masked_content] [pads]
+          
+          This resulting string, denoted masked_string, serves as the output example.
+          Here MASK_CHAR is the masking character defined in Vocabulary Specification,
+            and [pads] is a string of repeated PAD_CHAR characters chosen so that the
+            entire string is of length self.block_size.
+          Intuitively, the [masked_content], a string, is removed from the document and
+            replaced with MASK_CHAR (the masking character defined in Vocabulary
+            Specification). After the suffix of the string, the MASK_CHAR is seen again,
+            followed by the content that was removed, and the padding characters.
+        """
+        masked_string = prefix + self.MASK_CHAR + suffix + self.MASK_CHAR + masked_content
+        pad_length = self.block_size - len(masked_string)
+        pad = self.PAD_CHAR * pad_length
+        masked_string += pad
+        """
+        4. We now use masked_string to construct the input and output example pair. To
+        do so, simply take the input string to be masked_string[:-1], and the output
+        string to be masked_string[1:]. In other words, for each character, the goal is
+        to predict the next character in the masked string.
+        """
+        x_str = masked_string[:-1]
+        y_str = masked_string[1:]
+        """
+        5. Making use of the vocabulary that you defined, encode the resulting input
+        and output strings as Long tensors and return the resulting data point."""
+        x = torch.tensor([self.stoi[c] for c in x_str], dtype=torch.long)
+        y = torch.tensor([self.stoi[c] for c in y_str], dtype=torch.long)
+        return (x,y)
 """
 Code under here is strictly for your debugging purposes; feel free to modify
 as desired.
@@ -193,7 +266,7 @@ if __name__ == '__main__':
             print('y:', ''.join([name_dataset.itos[int(c)] for c in y]))
         pass
     elif args.dataset_type == 'charcorruption':
-        corruption_dataset = CharCorruptionDataset(open('wiki.txt').read(), 128) 
+        corruption_dataset = CharCorruptionDataset(open('wiki.txt').read(), 128)
         for _, example in zip(range(4), corruption_dataset):
             x, y = example
             print('x:', ''.join([corruption_dataset.itos[int(c)] for c in x]))
