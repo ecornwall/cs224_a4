@@ -58,7 +58,7 @@ if args.variant == 'vanilla':
     # TODO [part c]: Make some model here
     model = model.GPT(mconf)
 
-elif args.function == 'evaluate':
+if args.function == 'evaluate':
     assert args.outputs_path is not None
     assert args.reading_params_path is not None
     assert args.eval_corpus_path is not None
