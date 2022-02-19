@@ -73,8 +73,6 @@ if args.function == 'evaluate':
             x = x + '⁇'
             x = torch.tensor([pretrain_dataset.stoi[s] for s in x], dtype=torch.long)[None,...].to(device)
             pred = "London"
-            completion = ''.join([pretrain_dataset.itos[int(i)] for i in pred])
-            pred = completion.split('⁇')[1]
             predictions.append(pred)
             fout.write(pred + '\n')
         total, correct = utils.evaluate_places(args.eval_corpus_path, predictions)
