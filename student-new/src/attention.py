@@ -97,7 +97,7 @@ class SynthesizerAttention(nn.Module):
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)  # (B, nh, T, hs)
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
-        att = (relu @ self.w2) + self.b2
+        att = (relu @ self.w2[:, :T]) + self.b2[:T]
 
         att = att.masked_fill(self.mask[:, :, :T, :T] == 0, -1e10)
         att = F.softmax(att, dim=-1)
