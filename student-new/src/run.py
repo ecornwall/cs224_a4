@@ -112,7 +112,7 @@ elif args.function == 'finetune':
     if args.reading_params_path is None:
         tconf = trainer.TrainerConfig(max_epochs=75, batch_size=256, learning_rate=6e-4,
                               lr_decay=True, warmup_tokens=512 * 20, final_tokens=200 * len(pretrain_dataset) * block_size,
-                              num_workers=0)
+                              num_workers=4)
         trainer = trainer.Trainer(model, name_dataset, None, tconf)
         trainer.train()
         torch.save(model.state_dict(), args.writing_params_path)
@@ -130,6 +130,7 @@ elif args.function == 'evaluate':
     assert args.reading_params_path is not None
     assert args.eval_corpus_path is not None
     model.load_state_dict(torch.load(args.reading_params_path))
+    model.to(device)
     correct = 0
     total = 0
     with open(args.outputs_path, 'w') as fout:
